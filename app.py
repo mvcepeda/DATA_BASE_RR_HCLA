@@ -15,8 +15,8 @@ def cargar_datos():
 
 df = cargar_datos()
 
-st.title("📚 Repositorio de autores y publicaciones")
-st.write("Datos obtenidos automáticamente desde Google Sheets ✨")
+st.title("Repositorio de tesis del M.Sc. Governance of Risk and Resources - HCLA")
+st.write("Versión 0.1 - MC")
 
 st.subheader("Vista general de los datos")
 st.dataframe(df, use_container_width=True)
