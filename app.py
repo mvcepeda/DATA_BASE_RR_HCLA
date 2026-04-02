@@ -160,15 +160,40 @@ st.markdown("""
     }
 
     section[data-testid="stSidebar"] label,
-    section[data-testid="stSidebar"] p,
-    section[data-testid="stSidebar"] div {
-        color: #1f2937;
+    section[data-testid="stSidebar"] p {
+        color: #1f2937 !important;
     }
 
-    div[data-baseweb="select"] > div,
-    div[data-baseweb="input"] > div {
+    section[data-testid="stSidebar"] [data-baseweb="select"] > div,
+    section[data-testid="stSidebar"] [data-baseweb="input"] > div {
         background-color: #ffffff !important;
         border-radius: 10px !important;
+        border-color: #d1d5db !important;
+    }
+
+    section[data-testid="stSidebar"] input {
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        caret-color: #8e1b2f !important;
+        font-weight: 500 !important;
+    }
+
+    section[data-testid="stSidebar"] input::placeholder {
+        color: #9ca3af !important;
+        -webkit-text-fill-color: #9ca3af !important;
+        opacity: 1 !important;
+    }
+
+    section[data-testid="stSidebar"] [data-baseweb="select"] span {
+        color: #111827 !important;
+    }
+
+    section[data-testid="stSidebar"] svg {
+        fill: #6b7280 !important;
+    }
+
+    footer {
+        visibility: visible;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -414,16 +439,38 @@ if not df_filtrado.empty and col_anio and col_titulo:
 
     grafico = (
         alt.Chart(conteo)
-        .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+        .mark_bar(color="#b22222", cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
         .encode(
-            x=alt.X(f"{col_anio}:O", title="Año"),
-            y=alt.Y("Cantidad:Q", title="Número de tesis"),
-            tooltip=[alt.Tooltip(f"{col_anio}:O", title="Año"), alt.Tooltip("Cantidad:Q", title="Cantidad")]
+            x=alt.X(
+                f"{col_anio}:O",
+                title="Año",
+                axis=alt.Axis(labelAngle=0, labelColor="#374151", titleColor="#374151")
+            ),
+            y=alt.Y(
+                "Cantidad:Q",
+                title="Número de tesis",
+                axis=alt.Axis(labelColor="#374151", titleColor="#374151", gridColor="#e5e7eb")
+            ),
+            tooltip=[
+                alt.Tooltip(f"{col_anio}:O", title="Año"),
+                alt.Tooltip("Cantidad:Q", title="Cantidad")
+            ]
         )
-        .properties(height=350)
+        .properties(
+            height=340,
+            background="white"
+        )
+        .configure_view(
+            stroke=None,
+            fill="white"
+        )
+        .configure_axis(
+            domainColor="#d1d5db",
+            tickColor="#d1d5db"
+        )
     )
 
-    st.altair_chart(grafico, use_container_width=True)
+    st.altair_chart(grafico, use_container_width=True, theme=None)
 else:
     st.info("No hay datos suficientes para generar el resumen visual.")
 
