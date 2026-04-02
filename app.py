@@ -7,7 +7,8 @@ import altair as alt
 # ---------------------------------------------------
 st.set_page_config(
     page_title="Repositorio de Tesis | HCLA",
-   layout="wide",
+    page_icon="📚",
+    layout="wide",
 )
 
 # ---------------------------------------------------
@@ -15,41 +16,45 @@ st.set_page_config(
 # ---------------------------------------------------
 st.markdown("""
 <style>
-    .main {
-        background-color: #f8fafc;
+    .stApp {
+        background-color: #ffffff;
+        color: #1f2937;
     }
 
-    .block-container {
-        padding-top: 2rem;
+    .main .block-container {
+        padding-top: 1.8rem;
         padding-bottom: 2rem;
+        max-width: 1200px;
     }
 
     .hero-box {
-        background: linear-gradient(135deg, #0f172a, #1e3a8a);
-        padding: 1.8rem 2rem;
+        background: linear-gradient(135deg, #8e1b2f, #b22222);
+        padding: 1.6rem 1.8rem;
         border-radius: 18px;
         color: white;
         margin-bottom: 1.5rem;
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.08);
     }
 
     .hero-title {
         font-size: 2rem;
         font-weight: 700;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.25rem;
+        line-height: 1.2;
     }
 
     .hero-subtitle {
         font-size: 1rem;
-        opacity: 0.92;
+        opacity: 0.96;
     }
 
     .metric-card {
-        background: white;
+        background: #ffffff;
         padding: 1rem 1.2rem;
         border-radius: 16px;
         border: 1px solid #e5e7eb;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.04);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+        margin-bottom: 0.5rem;
     }
 
     .section-title {
@@ -57,17 +62,52 @@ st.markdown("""
         font-weight: 700;
         margin-top: 1rem;
         margin-bottom: 0.7rem;
-        color: #0f172a;
+        color: #8e1b2f;
     }
 
     .small-note {
-        color: #475569;
-        font-size: 0.92rem;
+        color: #4b5563;
+        font-size: 0.94rem;
     }
 
     [data-testid="stSidebar"] {
-        background-color: #ffffff;
+        background-color: #fafafa;
         border-right: 1px solid #e5e7eb;
+    }
+
+    div[data-testid="stMetric"] {
+        background-color: transparent;
+    }
+
+    div[data-testid="stMetricLabel"] {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    div[data-testid="stMetricValue"] {
+        color: #8e1b2f;
+    }
+
+    .stDownloadButton button {
+        background-color: #8e1b2f;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        padding: 0.55rem 1rem;
+        font-weight: 600;
+    }
+
+    .stDownloadButton button:hover {
+        background-color: #731626;
+        color: white;
+    }
+
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 1rem;
+    }
+
+    .stTabs [data-baseweb="tab"] {
+        font-weight: 600;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -80,16 +120,13 @@ def cargar_datos():
     SHEET_ID = "1DAValP0aAxzk2AxVShNe2uy4yacWX6vBTk0X6w13eKU"
     csv_url = f"https://docs.google.com/spreadsheets/d/{SHEET_ID}/export?format=csv"
     df = pd.read_csv(csv_url)
-
-    # limpiar nombres de columnas
     df.columns = [c.strip() for c in df.columns]
-
     return df
 
 df = cargar_datos()
 
 # ---------------------------------------------------
-# Función auxiliar para encontrar columnas posibles
+# Función para detectar columnas equivalentes
 # ---------------------------------------------------
 def encontrar_columna(df, opciones):
     columnas = {c.lower().strip(): c for c in df.columns}
@@ -102,10 +139,9 @@ col_anio = encontrar_columna(df, ["Año", "Ano", "Year"])
 col_autor = encontrar_columna(df, ["Autor", "Author", "Autores"])
 col_titulo = encontrar_columna(df, ["Título", "Titulo", "Title"])
 col_programa = encontrar_columna(df, ["Programa", "Program"])
-col_tema = encontrar_columna(df, ["Tema", "Keywords", "Palabras clave"])
+col_tema = encontrar_columna(df, ["Tema", "Temas", "Keywords", "Palabras clave"])
 col_link = encontrar_columna(df, ["Link", "URL", "Enlace", "Archivo", "PDF"])
 
-# Convertir año si existe
 if col_anio:
     df[col_anio] = pd.to_numeric(df[col_anio], errors="coerce")
 
@@ -128,7 +164,7 @@ st.sidebar.markdown("## Filtros")
 
 df_filtrado = df.copy()
 
-# Año
+# Filtro por año
 if col_anio:
     años = sorted([int(a) for a in df[col_anio].dropna().unique().tolist()])
     opciones_anio = ["Todos"] + [str(a) for a in años]
@@ -136,24 +172,27 @@ if col_anio:
 else:
     anio_sel = "Todos"
 
-# Autor
+# Filtro por autor
 if col_autor:
     autores = sorted(df[col_autor].dropna().astype(str).unique().tolist())
     autores_sel = st.sidebar.multiselect("Filtrar por autor", autores)
 else:
     autores_sel = []
 
-# Texto de búsqueda
-texto_busqueda = st.sidebar.text_input("Buscar por título o texto", placeholder="Escribe una palabra clave")
+# Búsqueda general
+texto_busqueda = st.sidebar.text_input(
+    "Buscar por título o texto",
+    placeholder="Escribe una palabra clave"
+)
 
-# Programa
+# Filtro por programa
 if col_programa:
     programas = sorted(df[col_programa].dropna().astype(str).unique().tolist())
     programa_sel = st.sidebar.multiselect("Filtrar por programa", programas)
 else:
     programa_sel = []
 
-# Tema
+# Filtro por tema
 if col_tema:
     temas = sorted(df[col_tema].dropna().astype(str).unique().tolist())
     tema_sel = st.sidebar.multiselect("Filtrar por tema", temas)
@@ -164,35 +203,46 @@ else:
 # Aplicar filtros
 # ---------------------------------------------------
 if col_anio and anio_sel != "Todos":
-    df_filtrado = df_filtrado[df_filtrado[col_anio].astype("Int64").astype(str) == anio_sel]
+    df_filtrado = df_filtrado[
+        df_filtrado[col_anio].astype("Int64").astype(str) == anio_sel
+    ]
 
 if col_autor and autores_sel:
-    df_filtrado = df_filtrado[df_filtrado[col_autor].astype(str).isin(autores_sel)]
+    df_filtrado = df_filtrado[
+        df_filtrado[col_autor].astype(str).isin(autores_sel)
+    ]
 
 if col_programa and programa_sel:
-    df_filtrado = df_filtrado[df_filtrado[col_programa].astype(str).isin(programa_sel)]
+    df_filtrado = df_filtrado[
+        df_filtrado[col_programa].astype(str).isin(programa_sel)
+    ]
 
 if col_tema and tema_sel:
-    df_filtrado = df_filtrado[df_filtrado[col_tema].astype(str).isin(tema_sel)]
+    df_filtrado = df_filtrado[
+        df_filtrado[col_tema].astype(str).isin(tema_sel)
+    ]
 
 if texto_busqueda:
     columnas_busqueda = [c for c in [col_titulo, col_autor, col_tema, col_programa] if c]
     if columnas_busqueda:
         mascara = df_filtrado[columnas_busqueda].fillna("").astype(str).agg(" ".join, axis=1)
-        df_filtrado = df_filtrado[mascara.str.contains(texto_busqueda, case=False, na=False)]
+        df_filtrado = df_filtrado[
+            mascara.str.contains(texto_busqueda, case=False, na=False)
+        ]
 
 # ---------------------------------------------------
 # Métricas
 # ---------------------------------------------------
 total_registros = len(df_filtrado)
 total_autores = df_filtrado[col_autor].nunique() if col_autor and not df_filtrado.empty else 0
-rango_anios = (
-    f"{int(df_filtrado[col_anio].min())} - {int(df_filtrado[col_anio].max())}"
-    if col_anio and not df_filtrado[col_anio].dropna().empty
-    else "Sin datos"
-)
+
+if col_anio and not df_filtrado.empty and not df_filtrado[col_anio].dropna().empty:
+    rango_anios = f"{int(df_filtrado[col_anio].min())} - {int(df_filtrado[col_anio].max())}"
+else:
+    rango_anios = "Sin datos"
 
 m1, m2, m3 = st.columns(3)
+
 with m1:
     st.markdown('<div class="metric-card">', unsafe_allow_html=True)
     st.metric("Registros encontrados", total_registros)
@@ -228,14 +278,12 @@ with tab1:
     st.markdown("")
 
     if not df_filtrado.empty:
-        # Preparar tabla
         columnas_mostrar = [c for c in [col_titulo, col_autor, col_anio, col_programa, col_tema, col_link] if c]
         if not columnas_mostrar:
             columnas_mostrar = df_filtrado.columns.tolist()
 
         df_mostrar = df_filtrado[columnas_mostrar].copy()
 
-        # Descargar CSV
         csv_descarga = df_filtrado.to_csv(index=False).encode("utf-8")
         st.download_button(
             label="⬇ Descargar resultados en CSV",
@@ -274,7 +322,7 @@ with tab2:
 
         grafico = (
             alt.Chart(conteo)
-            .mark_bar(cornerRadiusTopLeft=6, cornerRadiusTopRight=6)
+            .mark_bar()
             .encode(
                 x=alt.X(f"{col_anio}:O", title="Año"),
                 y=alt.Y("Cantidad:Q", title="Número de títulos"),
@@ -290,11 +338,7 @@ with tab2:
 
     if not df_filtrado.empty and col_autor:
         st.markdown('<div class="section-title">Autores más frecuentes</div>', unsafe_allow_html=True)
-        top_autores = (
-            df_filtrado[col_autor]
-            .value_counts()
-            .reset_index()
-        )
+        top_autores = df_filtrado[col_autor].value_counts().reset_index()
         top_autores.columns = ["Autor", "Cantidad"]
         st.dataframe(top_autores.head(10), use_container_width=True)
 
