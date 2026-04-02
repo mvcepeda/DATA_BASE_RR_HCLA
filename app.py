@@ -7,8 +7,7 @@ import altair as alt
 # ---------------------------------------------------
 st.set_page_config(
     page_title="Repositorio de Tesis | HCLA",
-    page_icon="📚",
-    layout="wide",
+   layout="wide",
 )
 
 # ---------------------------------------------------
